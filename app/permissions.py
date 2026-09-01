@@ -2,9 +2,9 @@ from enum import StrEnum
 
 from fastapi import HTTPException, status
 
+from app.deps import CurrentUserDep
 from app.enums import Role
 from app.models import User
-from app.security import CurrentUserDep
 
 
 class Permission(StrEnum):
