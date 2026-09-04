@@ -8,6 +8,9 @@ from app.models import User
 
 
 class Permission(StrEnum):
+    USER_READ = "user:read"
+    USER_UPDATE = "user:update"
+    USER_DISABLE = "user:disable"
     USER_DELETE = "user:delete"
     PROJECT_CREATE = "project:create"
     PROJECT_UPDATE = "project:update"

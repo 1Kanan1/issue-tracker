@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, model_validator
 
 from app.enums import Role
 
@@ -9,7 +9,17 @@ class User(BaseModel):
 
 
 class UserCreate(User):
-    password: str
+    password: str = Field(
+        min_length=8,
+        max_length=128,
+        description="Password must be between 8 and 128 characters"
+    )
+
+    @model_validator(mode="after")
+    def password_not_username(self):
+        if self.username.lower() in self.password.lower():
+            raise ValueError("Password cannot contain your username")
+        return self
 
 
 class UserUpdate(BaseModel):
