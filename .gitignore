@@ -15,3 +15,5 @@ wheels/
 
 # Local database
 *.db
+
+.env*
