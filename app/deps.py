@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Annotated
 
 import jwt
@@ -18,6 +19,7 @@ from app.services.user import UserService
 settings = get_settings()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
+logger = logging.getLogger(__name__)
 
 def get_user_service(db: DbDep) -> UserService:
     return UserService(db)
@@ -28,7 +30,7 @@ async def get_current_user(
 ) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail="get_current_user: Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
 
@@ -37,8 +39,8 @@ async def get_current_user(
         user_id = payload.get("sub")
         if user_id is None:
             raise credentials_exception
-
-    except (InvalidTokenError, ValueError):
+    except (InvalidTokenError, ValueError) as exc:
+        logger.warning("Invalid token (%s, %s)", type(exc).__name__, exc)
         raise credentials_exception
 
     try:
@@ -47,7 +49,11 @@ async def get_current_user(
         raise credentials_exception
 
     if user.is_disabled:
-        raise credentials_exception
+        logger.warning("User is disabled (id=%d)", user_id)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,  # 403, not 409
+            detail="User is disabled",
+        )
 
     return user
 
