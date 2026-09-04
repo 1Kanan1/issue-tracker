@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 
+from app.core.logging import setup_logging
 from app.exceptions.handlers import register_exception_handlers
 from app.routers import api
+
+setup_logging()
 
 app = FastAPI()
 app.include_router(api.router)
