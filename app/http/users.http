@@ -1,0 +1,46 @@
+@baseUrl = http://localhost:8000/api/v1
+@username = alex
+@email = alex@example.com
+@password = secret123
+
+@adminUsername = admin
+@adminPassword = adminsecret
+
+### Login & extract token
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+> {%
+  client.global.set("authToken", response.body.access_token)
+%}
+
+### Create user
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Retrieve user
+GET {{baseUrl}}/users/1
+Authorization: Bearer {{authToken}}
+
+### Retrieve users
+GET {{baseUrl}}/users
+Authorization: Bearer {{authToken}}
+
+### Delete user
+DELETE {{baseUrl}}/users/2
+Authorization: Bearer {{authToken}}
+
+### Retrieve me
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{authToken}}
