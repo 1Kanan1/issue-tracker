@@ -1,1 +1,2 @@
 ALGORITHM = "HS256"
+API_VER = "/api/v1"

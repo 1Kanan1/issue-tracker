@@ -5,10 +5,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.enums import Role
+from app.exceptions.base import AlreadyExistsError, NotFoundError
 from app.exceptions.user import (
     AuthenticationError,
-    UserAlreadyExistsError,
-    UserNotFoundError,
 )
 from app.models import User
 from app.schemas.user import UserCreate, UserUpdate
@@ -23,12 +22,14 @@ class UserService:
     async def authenticate(self, username: str, password: str) -> User:
         user = await self.get_by_username(username)
 
-        if (
-            user is None
-            or user.is_disabled
-            or not verify_password(password, user.password_hash)
-        ):
-            raise AuthenticationError()
+        if user is None:
+            raise AuthenticationError(f"User with username {username} not found")
+
+        if user.is_disabled:
+            raise AuthenticationError(f"User with username {username} is disabled")
+
+        if not verify_password(password, user.password_hash):
+            raise AuthenticationError("Invalid password")
 
         logger.info("authenticate(id=%d, username=%s)", user.id, user.username)
         return user
@@ -39,10 +40,10 @@ class UserService:
 
         # To avoid race condition, keep statement conditions for user and email separately
         if user:
-            raise UserAlreadyExistsError()
+            raise AlreadyExistsError("User", user.id)
         
         if email:
-            raise UserAlreadyExistsError()
+            raise AlreadyExistsError("User", email.id)
 
         password_hash = hash_password(data.password)
 
@@ -74,7 +75,7 @@ class UserService:
 
         if user is None:
             logger.warning("User not found (id=%s)", user_id)
-            raise UserNotFoundError()
+            raise NotFoundError("User", user_id)
 
         logger.debug("get_by_id(id=%s, username=%s)", user.id, user.username)
         return user

@@ -1,7 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 
 from app.deps import CurrentUserDep, UserServiceDep, get_current_user
-from app.exceptions.user import UserAlreadyExistsError
 from app.permissions import Permission, require_permission
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 
@@ -15,7 +14,11 @@ async def get_current_user_profile(
     return current_user
 
 
-@router.get("", response_model=list[UserResponse], dependencies=[Depends(require_permission(Permission.USER_READ))])
+@router.get(
+    "",
+    response_model=list[UserResponse],
+    dependencies=[Depends(require_permission(Permission.USER_READ))]
+)
 async def list_users(service: UserServiceDep, skip: int = 0, limit: int = 20):
     return await service.list(skip=skip, limit=limit)
 
@@ -37,12 +40,7 @@ async def get_user(user_id: int, service: UserServiceDep):
     status_code=status.HTTP_201_CREATED,
 )
 async def create_user(data: UserCreate, service: UserServiceDep):
-    try:
-        return await service.create(data)
-    except UserAlreadyExistsError:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="User already exists"
-        )
+    return await service.create(data)
 
 
 @router.patch('/me', response_model=UserResponse)
