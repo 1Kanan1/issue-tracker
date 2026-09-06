@@ -29,16 +29,16 @@ def admin_data() -> UserCreate:
 
 
 @pytest_asyncio.fixture
-async def john(service: UserService, john_data: UserCreate) -> User:
-    return await service.create(john_data)
+async def john(user_service: UserService, john_data: UserCreate) -> User:
+    return await user_service.create(john_data)
 
 @pytest_asyncio.fixture
-async def alice(service: UserService, alice_data: UserCreate) -> User:
-    return await service.create(alice_data)
+async def alice(user_service: UserService, alice_data: UserCreate) -> User:
+    return await user_service.create(alice_data)
 
 @pytest_asyncio.fixture
-async def admin(service: UserService, admin_data: UserCreate) -> User:
-    return await service.create(admin_data, role=Role.ADMIN)
+async def admin(user_service: UserService, admin_data: UserCreate) -> User:
+    return await user_service.create(admin_data, role=Role.ADMIN)
 
 
 @pytest_asyncio.fixture

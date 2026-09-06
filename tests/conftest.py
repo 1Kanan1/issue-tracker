@@ -4,6 +4,8 @@ from pwdlib import PasswordHash
 from pwdlib.hashers.argon2 import Argon2Hasher
 from sqlalchemy import text
 
+from app.services.project import ProjectService
+
 os.environ["ENV_FILE"] = ".env.test"
 
 import pytest_asyncio
@@ -22,7 +24,7 @@ from app.services.user import UserService
 
 settings = get_settings()
 
-pytest_plugins= ["tests.fixtures.users"]
+pytest_plugins= ["tests.fixtures.users", "tests.fixtures.projects"]
 
 
 # Argon2id takes ~50ms per hash. Below is used to low-cost rounds (down to 0.1ms per hash)
@@ -52,8 +54,12 @@ async def db():
 
 
 @pytest_asyncio.fixture
-async def service(db: AsyncSession):
+async def user_service(db: AsyncSession):
     return UserService(db)
+
+@pytest_asyncio.fixture
+async def project_service(db: AsyncSession):
+    return ProjectService(db)
 
 @pytest_asyncio.fixture
 async def client(db: AsyncSession):
