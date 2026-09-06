@@ -10,19 +10,23 @@ from jwt.exceptions import InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
-from app.core.constants import ALGORITHM
+from app.core.constants import ALGORITHM, API_VER
 from app.db import get_db
-from app.exceptions.user import UserNotFoundError
+from app.exceptions.base import NotFoundError
 from app.models import User
+from app.services.project import ProjectService
 from app.services.user import UserService
 
 settings = get_settings()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{API_VER}/auth/login")
 
 logger = logging.getLogger(__name__)
 
 def get_user_service(db: DbDep) -> UserService:
     return UserService(db)
+
+def get_project_service(db: DbDep) -> ProjectService:
+    return ProjectService(db)
 
 
 async def get_current_user(
@@ -45,7 +49,7 @@ async def get_current_user(
 
     try:
         user = await service.get_by_id(int(user_id))
-    except UserNotFoundError:
+    except NotFoundError:
         raise credentials_exception
 
     if user.is_disabled:
@@ -61,3 +65,4 @@ async def get_current_user(
 DbDep = Annotated[AsyncSession, Depends(get_db)]
 CurrentUserDep = Annotated[User, Depends(get_current_user)]
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
+ProjectServiceDep = Annotated[ProjectService, Depends(get_project_service)]

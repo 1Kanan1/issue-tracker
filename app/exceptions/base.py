@@ -10,5 +10,6 @@ class AlreadyExistsError(Exception):
         self.entity = entity
         self.entity_id = entity_id
 
-class ConflictError(Exception):
-    pass
+class ForbiddenError(Exception):
+    def __init__(self, detail: str = "Insufficient permissions"):
+        super().__init__(detail)

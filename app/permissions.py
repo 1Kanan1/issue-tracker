@@ -12,6 +12,7 @@ class Permission(StrEnum):
     USER_UPDATE = "user:update"
     USER_DISABLE = "user:disable"
     USER_DELETE = "user:delete"
+    PROJECT_READ = "project:read"
     PROJECT_CREATE = "project:create"
     PROJECT_UPDATE = "project:update"
     PROJECT_DELETE = "project:delete"
