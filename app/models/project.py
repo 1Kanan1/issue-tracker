@@ -1,12 +1,8 @@
-from __future__ import annotations  # avoids using quotes in type annotations
-
 from sqlalchemy import Column, ForeignKey, String, Table
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
 from app.enums import ProjectStatus
-from app.models.issue import Issue
-from app.models.user import User
 
 project_members = Table(
     "project_members",
@@ -27,11 +23,11 @@ class Project(Base):
     owner_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"), nullable=False
     )  # to infer a relationship between User and Project; otherwise, the database won't bind them
-    owner: Mapped[User] = relationship(
+    owner: Mapped["User"] = relationship( # noqa: F821 # ty: ignore[unresolved-reference]
         back_populates="owned_projects"
     )  # uses User.projects
 
-    issues: Mapped[list[Issue]] = relationship(back_populates="project")
-    members: Mapped[list[User]] = relationship(
+    issues: Mapped[list["Issue"]] = relationship(back_populates="project") # noqa: F821 # ty: ignore[unresolved-reference]
+    members: Mapped[list["User"]] = relationship( # noqa: F821 # ty: ignore[unresolved-reference]
         secondary=project_members, back_populates="joined_projects"
     )

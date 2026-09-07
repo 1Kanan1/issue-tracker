@@ -4,8 +4,6 @@ from sqlalchemy import DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
-from app.models.issue import Issue
-from app.models.user import User
 
 
 class Comment(Base):
@@ -15,10 +13,10 @@ class Comment(Base):
     content: Mapped[str] = mapped_column(String(5000), nullable=False)
 
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    author: Mapped[User] = relationship(back_populates="comments")
+    author: Mapped["User"] = relationship(back_populates="comments") # noqa: F821 # ty: ignore[unresolved-reference]
 
     issue_id: Mapped[int] = mapped_column(ForeignKey("issues.id"), nullable=False)
-    issue: Mapped[Issue] = relationship(back_populates="comments")
+    issue: Mapped["Issue"] = relationship(back_populates="comments") # noqa: F821 # ty: ignore[unresolved-reference]
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

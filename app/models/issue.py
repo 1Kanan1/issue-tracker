@@ -1,18 +1,10 @@
-from __future__ import annotations  # avoids using quotes in type annotations
-
 from datetime import date, datetime
-from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
 from app.enums import IssueStatus, Priority
-
-if TYPE_CHECKING:
-    from app.models.comment import Comment
-    from app.models.project import Project
-    from app.models.user import User
 
 
 class Issue(Base):
@@ -28,17 +20,17 @@ class Issue(Base):
         ForeignKey("projects.id"),
         nullable=False,
     )
-    project: Mapped[Project] = relationship(
+    project: Mapped["Project"] = relationship( # noqa: F821 # ty: ignore[unresolved-reference]
         foreign_keys=[project_id], back_populates="issues"
     )
 
-    comments: Mapped[list[Comment]] = relationship(back_populates="issue")
+    comments: Mapped[list["Comment"]] = relationship(back_populates="issue") # noqa: F821 # ty: ignore[unresolved-reference]
 
     creator_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"),
         nullable=False,
     )
-    creator: Mapped[User] = relationship(
+    creator: Mapped["User"] = relationship( # noqa: F821 # ty: ignore[unresolved-reference]
         foreign_keys=[creator_id], back_populates="created_issues"
     )
 
@@ -46,7 +38,7 @@ class Issue(Base):
         ForeignKey("users.id"),
         nullable=True,
     )
-    assignee: Mapped[User | None] = relationship(
+    assignee: Mapped["User | None"] = relationship( # noqa: F821 # ty: ignore[unresolved-reference]
         foreign_keys=[assignee_id], back_populates="assigned_issues"
     )
 
