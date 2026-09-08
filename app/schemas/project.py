@@ -17,7 +17,7 @@ class ProjectUpdate(BaseModel):
 class ProjectResponse(BaseModel):
     id: int
     name: str
-    description: str | None = None
+    description: str | None
     status: ProjectStatus
     owner: UserResponse
     members: list[UserResponse]

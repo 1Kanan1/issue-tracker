@@ -80,8 +80,8 @@ class ProjectService:
             )
 
         query = query.offset(skip).limit(limit)
-        projects = await self.db.execute(query)
-        return list(projects.scalars().all())
+        result = await self.db.execute(query)
+        return list(result.scalars().all())
 
     async def update(self, current_user: User, project_id: int, data: ProjectUpdate):
         project = await self.get_by_id(current_user, project_id)

@@ -44,11 +44,14 @@ async def db():
         expire_on_commit=False
     )
     async with session_factory() as session:
-        yield session
-        await session.execute(
-            text("TRUNCATE TABLE users, projects, issues, comments, project_members CASCADE;")		
-        )
-        await session.commit()
+        try:
+            yield session
+        finally:
+            await session.rollback()
+            await session.execute(
+                text("TRUNCATE TABLE users, projects, issues, comments, project_members CASCADE;")		
+            )
+            await session.commit()
 
     await engine.dispose()
 

@@ -12,7 +12,7 @@ class Issue(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String, nullable=False)
-    description: Mapped[str] = mapped_column(String(5000), unique=False)
+    description: Mapped[str | None] = mapped_column(String(5000), nullable=True)
     status: Mapped[IssueStatus] = mapped_column(default=IssueStatus.OPEN)
     priority: Mapped[Priority] = mapped_column(default=Priority.LOW)
 
