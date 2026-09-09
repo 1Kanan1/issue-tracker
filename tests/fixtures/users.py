@@ -52,3 +52,20 @@ async def alice_token(alice: User) -> str:
 @pytest_asyncio.fixture
 async def admin_token(admin: User) -> str:
     return create_access_token(admin.id)
+
+
+@pytest.fixture
+def bob_data() -> UserCreate:
+    return UserCreate(
+        username="bob", email="bob@example.com", password="password123"
+    )
+
+
+@pytest_asyncio.fixture
+async def bob(user_service: UserService, bob_data: UserCreate) -> User:
+    return await user_service.create(bob_data)
+
+
+@pytest_asyncio.fixture
+async def bob_token(bob: User) -> str:
+    return create_access_token(bob.id)

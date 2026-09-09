@@ -14,6 +14,7 @@ from app.core.constants import ALGORITHM, API_VER
 from app.db import get_db
 from app.exceptions.base import NotFoundError
 from app.models import User
+from app.services.comment import CommentService
 from app.services.issue import IssueService
 from app.services.project import ProjectService
 from app.services.user import UserService
@@ -31,6 +32,9 @@ def get_project_service(db: DbDep) -> ProjectService:
 
 def get_issue_service(db: DbDep) -> IssueService:
     return IssueService(db)
+
+def get_comment_service(db: DbDep) -> CommentService:
+    return CommentService(db)
 
 
 async def get_current_user(
@@ -71,3 +75,4 @@ CurrentUserDep = Annotated[User, Depends(get_current_user)]
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 ProjectServiceDep = Annotated[ProjectService, Depends(get_project_service)]
 IssueServiceDep = Annotated[IssueService, Depends(get_issue_service)]
+CommentServiceDep = Annotated[CommentService, Depends(get_comment_service)]
