@@ -20,11 +20,18 @@ import app.security as app_security
 from app.core.config import get_settings
 from app.db import Base, get_db
 from app.main import app
+from app.services.comment import CommentService
+from app.services.issue import IssueService
 from app.services.user import UserService
 
 settings = get_settings()
 
-pytest_plugins= ["tests.fixtures.users", "tests.fixtures.projects"]
+pytest_plugins = [
+    "tests.fixtures.users",
+    "tests.fixtures.projects",
+    "tests.fixtures.issues",
+    "tests.fixtures.comments",
+]
 
 
 # Argon2id takes ~50ms per hash. Below is used to low-cost rounds (down to 0.1ms per hash)
@@ -63,6 +70,14 @@ async def user_service(db: AsyncSession):
 @pytest_asyncio.fixture
 async def project_service(db: AsyncSession):
     return ProjectService(db)
+
+@pytest_asyncio.fixture
+async def issue_service(db: AsyncSession):
+    return IssueService(db)
+
+@pytest_asyncio.fixture
+async def comment_service(db: AsyncSession):
+    return CommentService(db)
 
 @pytest_asyncio.fixture
 async def client(db: AsyncSession):

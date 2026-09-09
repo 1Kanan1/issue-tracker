@@ -2,7 +2,7 @@ import pytest
 from httpx import AsyncClient
 
 from app.enums import IssueStatus, Priority
-from app.models import Project, User
+from app.models import Issue, Project, User
 from app.services.project import ProjectService
 
 
@@ -105,41 +105,26 @@ async def test_create_issue_project_not_found(
 async def test_get_issue_success(
     client: AsyncClient,
     john_token: str,
-    john_project: Project,
+    john_issue: Issue,
 ):
-    res_create = await client.post(
-        f"/projects/{john_project.id}/issues",
-        json={"title": "Inspect me"},
-        headers={"Authorization": f"Bearer {john_token}"},
-    )
-    issue_id = res_create.json()["id"]
-
     res = await client.get(
-        f"/issues/{issue_id}",
+        f"/issues/{john_issue.id}",
         headers={"Authorization": f"Bearer {john_token}"},
     )
     assert res.status_code == 200, res.text
     data = res.json()
-    assert data["id"] == issue_id
-    assert data["title"] == "Inspect me"
+    assert data["id"] == john_issue.id
+    assert data["title"] == john_issue.title
 
 
 @pytest.mark.asyncio
 async def test_get_issue_forbidden_for_non_member(
     client: AsyncClient,
-    john_token: str,
     alice_token: str,
-    john_project: Project,
+    john_issue: Issue,
 ):
-    res_create = await client.post(
-        f"/projects/{john_project.id}/issues",
-        json={"title": "Secret project issue"},
-        headers={"Authorization": f"Bearer {john_token}"},
-    )
-    issue_id = res_create.json()["id"]
-
     res = await client.get(
-        f"/issues/{issue_id}",
+        f"/issues/{john_issue.id}",
         headers={"Authorization": f"Bearer {alice_token}"},
     )
     assert res.status_code == 403, res.text
@@ -177,21 +162,15 @@ async def test_update_issue_status_and_assignee(
     client: AsyncClient,
     john_token: str,
     john_project: Project,
+    john_issue: Issue,
     alice: User,
     john: User,
     project_service: ProjectService,
 ):
     await project_service.add_member(john, john_project.id, alice.id)
 
-    res_create = await client.post(
-        f"/projects/{john_project.id}/issues",
-        json={"title": "Initial Title"},
-        headers={"Authorization": f"Bearer {john_token}"},
-    )
-    issue_id = res_create.json()["id"]
-
     res = await client.patch(
-        f"/issues/{issue_id}",
+        f"/issues/{john_issue.id}",
         json={
             "status": IssueStatus.IN_PROGRESS.value,
             "priority": Priority.CRITICAL.value,
@@ -211,32 +190,25 @@ async def test_delete_issue(
     client: AsyncClient,
     john_token: str,
     alice_token: str,
-    john_project: Project,
+    john_issue: Issue,
 ):
-    res_create = await client.post(
-        f"/projects/{john_project.id}/issues",
-        json={"title": "To be deleted"},
-        headers={"Authorization": f"Bearer {john_token}"},
-    )
-    issue_id = res_create.json()["id"]
-
     # Non-member cannot delete
     res_forbidden = await client.delete(
-        f"/issues/{issue_id}",
+        f"/issues/{john_issue.id}",
         headers={"Authorization": f"Bearer {alice_token}"},
     )
     assert res_forbidden.status_code == 403, res_forbidden.text
 
     # Owner can delete
     res_delete = await client.delete(
-        f"/issues/{issue_id}",
+        f"/issues/{john_issue.id}",
         headers={"Authorization": f"Bearer {john_token}"},
     )
     assert res_delete.status_code == 204, res_delete.text
 
     # Verify deleted
     res_get = await client.get(
-        f"/issues/{issue_id}",
+        f"/issues/{john_issue.id}",
         headers={"Authorization": f"Bearer {john_token}"},
     )
     assert res_get.status_code == 404, res_get.text
