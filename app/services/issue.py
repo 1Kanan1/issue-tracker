@@ -2,7 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from app.enums import Role
+from app.enums import IssueStatus, Priority, Role
 from app.exceptions.base import ForbiddenError, NotFoundError
 from app.models import Issue, Project, User
 from app.schemas.issue import IssueCreate, IssueUpdate
@@ -80,12 +80,24 @@ class IssueService:
 
         return issue
 
-    async def list_for_project(self, current_user: User, project_id: int, skip=0, limit=20):
+    async def list_for_project(
+        self,
+        current_user: User,
+        project_id: int,
+        skip=0,
+        limit=20,
+        search: str | None = None,
+        status: IssueStatus | None = None,
+        priority: Priority | None = None,
+        assignee_id: int | None = None,
+        creator_id: int | None = None,
+    ):
         query = (
             select(Project)
             .options(selectinload(Project.members))
             .where(Project.id == project_id)
         )
+        
         project = (await self.db.execute(query)).scalar_one_or_none()
 
         if not project:
@@ -106,9 +118,24 @@ class IssueService:
                 joinedload(Issue.assignee)
             )
             .where(Issue.project_id == project_id)
-            .offset(skip)
-            .limit(limit)
         )
+
+        if search:
+            query = query.where(Issue.title.ilike(f"%{search.strip()}%"))
+
+        if status:
+            query = query.where(Issue.status == status)
+
+        if priority:
+            query = query.where(Issue.priority == priority)
+
+        if assignee_id:
+            query = query.where(Issue.assignee_id == assignee_id)
+
+        if creator_id:
+            query = query.where(Issue.creator_id == creator_id)
+
+        query = query.offset(skip).limit(limit)
 
         result = await self.db.execute(query)
 

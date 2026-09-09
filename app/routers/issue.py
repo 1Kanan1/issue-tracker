@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status
 
 from app.deps import CurrentUserDep, IssueServiceDep
+from app.enums import IssueStatus, Priority
 from app.schemas.issue import IssueCreate, IssueResponse, IssueUpdate
 
 router = APIRouter(tags=["issues"])
@@ -19,10 +20,25 @@ async def list_issues(
     project_id: int,
     current_user: CurrentUserDep,
     service: IssueServiceDep,
+    search: str | None = None,
+    status: IssueStatus | None = None,
+    priority: Priority | None = None,
+    assignee_id: int | None = None,
+    creator_id: int | None = None,
     skip: int = 0,
     limit: int = 20,
 ):
-    return await service.list_for_project(current_user, project_id, skip, limit)
+    return await service.list_for_project(
+        current_user,
+        project_id,
+        skip,
+        limit,
+        search,
+        status,
+        priority,
+        assignee_id,
+        creator_id
+    )
 
 @router.get("/issues/{issue_id}", response_model=IssueResponse)
 async def get_issue(issue_id: int, current_user: CurrentUserDep, service: IssueServiceDep):

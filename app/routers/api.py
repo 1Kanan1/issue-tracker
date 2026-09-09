@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from app.core.constants import API_VER
 from app.routers import auth, comment, issue, project, user
 
-router = APIRouter(prefix=API_VER, tags=["api"])
+router = APIRouter(prefix=API_VER)
 
 router.include_router(user.router)
 router.include_router(auth.router)
