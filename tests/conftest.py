@@ -1,15 +1,12 @@
 import os
 
-from pwdlib import PasswordHash
-from pwdlib.hashers.argon2 import Argon2Hasher
-from sqlalchemy import text
-
-from app.services.project import ProjectService
-
 os.environ["ENV_FILE"] = ".env.test"
 
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from pwdlib import PasswordHash
+from pwdlib.hashers.argon2 import Argon2Hasher
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -22,9 +19,16 @@ from app.db import Base, get_db
 from app.main import app
 from app.services.comment import CommentService
 from app.services.issue import IssueService
+from app.services.project import ProjectService
 from app.services.user import UserService
 
 settings = get_settings()
+
+# Tripwire: fires at collection time, before any test can touch a database.
+assert settings.database_url.endswith("_test"), (
+    f"refusing to run tests against {settings.database_url!r} "
+    f"— is ENV_FILE set before the first app import in conftest.py?"
+)
 
 pytest_plugins = [
     "tests.fixtures.users",
