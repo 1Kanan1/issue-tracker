@@ -10,10 +10,15 @@ from app.exceptions.user import (
     AuthenticationError,
 )
 from app.models import User
-from app.schemas.user import UserCreate, UserUpdate
+from app.schemas.user import (
+    UserCreate,
+    UserUpdate,
+    reject_username_in_password,
+)
 from app.security import hash_password, verify_password
 
 logger = logging.getLogger(__name__)
+
 
 class UserService:
     def __init__(self, db: AsyncSession):
@@ -41,7 +46,7 @@ class UserService:
         # To avoid race condition, keep statement conditions for user and email separately
         if user:
             raise AlreadyExistsError("User", user.id)
-        
+
         if email:
             raise AlreadyExistsError("User", email.id)
 
@@ -60,7 +65,13 @@ class UserService:
             new_user
         )  # Updates Python object using the latest data from database
 
-        logger.info("create(id=%d, username=%s, email=%s, role=%s)", new_user.id, new_user.username, new_user.email, new_user.role)
+        logger.info(
+            "create(id=%d, username=%s, email=%s, role=%s)",
+            new_user.id,
+            new_user.username,
+            new_user.email,
+            new_user.role,
+        )
         return new_user
 
     async def list(self, skip: int = 0, limit: int = 20) -> list[User]:
@@ -98,7 +109,13 @@ class UserService:
         update_data = data.model_dump(exclude_unset=True)
 
         if "password" in update_data:
-            update_data["password_hash"] = hash_password(update_data.pop("password"))
+            password = update_data.pop("password")
+
+            if password is not None:
+                effective_username = update_data.get("username") or user.username
+                reject_username_in_password(effective_username, password)
+
+                update_data["password_hash"] = hash_password(password)
 
         for field, value in update_data.items():
             setattr(user, field, value)
