@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.deps import CurrentUserDep, UserServiceDep, get_current_user
 from app.permissions import Permission, require_permission
@@ -19,7 +19,11 @@ async def get_current_user_profile(
     response_model=list[UserResponse],
     dependencies=[Depends(require_permission(Permission.USER_READ))],
 )
-async def list_users(service: UserServiceDep, skip: int = 0, limit: int = 20):
+async def list_users(
+    service: UserServiceDep,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=20, ge=0, le=100),
+):
     return await service.list(skip=skip, limit=limit)
 
 

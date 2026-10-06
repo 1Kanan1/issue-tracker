@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.deps import CurrentUserDep, ProjectServiceDep
 from app.permissions import Permission, require_permission
@@ -11,8 +11,8 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 async def list_projects(
     service: ProjectServiceDep,
     current_user: CurrentUserDep,
-    skip: int = 0,
-    limit: int = 20,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=20, ge=0, le=100),
 ):
     return await service.list_for_user(current_user, skip, limit)
 

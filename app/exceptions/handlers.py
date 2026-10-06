@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import IntegrityError
 
 from app.exceptions.base import (
     AlreadyExistsError,
@@ -33,8 +34,15 @@ async def validation_handler(request: Request, exc: Exception):
     )
 
 
+async def integrity_error_handler(_request: Request, _exc: Exception):
+    return JSONResponse(
+        status_code=status.HTTP_409_CONFLICT, content={"detail": "Conflict"}
+    )
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(NotFoundError, not_found_handler)
     app.add_exception_handler(AlreadyExistsError, already_exists_handler)
     app.add_exception_handler(ForbiddenError, forbidden_handler)
     app.add_exception_handler(ValidationError, validation_handler)
+    app.add_exception_handler(IntegrityError, integrity_error_handler)

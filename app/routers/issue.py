@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Query, status
 
 from app.deps import CurrentUserDep, IssueServiceDep
 from app.enums import IssueStatus, Priority
@@ -31,8 +31,8 @@ async def list_issues(
     priority: Priority | None = None,
     assignee_id: int | None = None,
     creator_id: int | None = None,
-    skip: int = 0,
-    limit: int = 20,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=20, ge=0, le=100),
 ):
     return await service.list_for_project(
         current_user,

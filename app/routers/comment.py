@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Query, status
 
 from app.deps import CommentServiceDep, CurrentUserDep
 from app.schemas.comment import CommentCreate, CommentResponse, CommentUpdate
@@ -25,8 +25,8 @@ async def get_comments(
     issue_id: int,
     current_user: CurrentUserDep,
     service: CommentServiceDep,
-    skip: int = 0,
-    limit: int = 20,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=20, ge=0, le=100),
 ):
     return await service.list_for_issue(current_user, issue_id, skip, limit)
 

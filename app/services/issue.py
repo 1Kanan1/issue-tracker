@@ -115,7 +115,11 @@ class IssueService:
         )
 
         if search:
-            query = query.where(Issue.title.ilike(f"%{search.strip()}%"))
+            term = search.strip()
+            # Order matters: escaping the backslash first is what stops the
+            # escapes below from being escaped again.
+            term = term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            query = query.where(Issue.title.ilike(f"%{term}%", escape="\\"))
 
         if status:
             query = query.where(Issue.status == status)

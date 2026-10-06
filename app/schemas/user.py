@@ -28,8 +28,9 @@ def reject_username_in_password(username: str, password: str) -> None:
 
 
 class User(BaseModel):
-    username: str
-    email: EmailStr
+    # Bound to the column width: raising these needs a migration.
+    username: str = Field(max_length=30)
+    email: EmailStr = Field(max_length=100)
 
 
 class UserCreate(User):
@@ -43,8 +44,8 @@ class UserCreate(User):
 
 
 class UserUpdate(BaseModel):
-    username: str | None = None
-    email: EmailStr | None = None
+    username: str | None = Field(default=None, max_length=30)
+    email: EmailStr | None = Field(default=None, max_length=100)
     password: Password | None = None
 
     @model_validator(mode="after")
