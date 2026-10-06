@@ -6,25 +6,35 @@ from app.schemas.project import ProjectCreate, ProjectUpdate
 from app.services.project import ProjectService
 
 
-async def test_get_project(project_service: ProjectService, john: User, john_project: Project):
+async def test_get_project(
+    project_service: ProjectService, john: User, john_project: Project
+):
     project = await project_service.get_by_id(john, john_project.id)
 
     assert project.id == john_project.id
     assert project.owner == john
 
-async def test_project_not_found(project_service: ProjectService, john: User,):
+
+async def test_project_not_found(
+    project_service: ProjectService,
+    john: User,
+):
     with pytest.raises(NotFoundError):
         await project_service.get_by_id(john, 999999)
 
-async def test_project_forbidden(project_service: ProjectService, john: User, alice_project: Project):
+
+async def test_project_forbidden(
+    project_service: ProjectService, john: User, alice_project: Project
+):
     with pytest.raises(ForbiddenError):
         await project_service.get_by_id(john, alice_project.id)
+
 
 async def test_get_projects(
     project_service: ProjectService,
     admin: User,
     john_project: Project,
-    alice_project: Project
+    alice_project: Project,
 ):
     projects = await project_service.list_for_user(admin)
 
@@ -33,13 +43,12 @@ async def test_get_projects(
     assert john_project in projects
     assert alice_project in projects
 
+
 async def test_create_project(
-    project_service: ProjectService,
-    john: User,
-    john_project_data: ProjectCreate
+    project_service: ProjectService, john: User, john_project_data: ProjectCreate
 ):
     project = await project_service.create(john.id, john_project_data)
-    
+
     assert project.owner == john
     assert project.name == john_project_data.name
     assert project.description == john_project_data.description
@@ -50,7 +59,7 @@ async def test_project_already_exists(
     project_service: ProjectService,
     john: User,
     john_project: Project,
-    john_project_data: ProjectCreate
+    john_project_data: ProjectCreate,
 ):
     with pytest.raises(AlreadyExistsError):
         await project_service.create(john.id, john_project_data)
@@ -61,7 +70,7 @@ async def test_list_projects_member_scoped(
     john: User,
     alice: User,
     john_project: Project,
-    alice_project: Project
+    alice_project: Project,
 ):
     john_projects = await project_service.list_for_user(john)
     assert len(john_projects) == 1
@@ -73,37 +82,28 @@ async def test_list_projects_member_scoped(
 
 
 async def test_update_project(
-    project_service: ProjectService,
-    john: User,
-    john_project: Project
+    project_service: ProjectService, john: User, john_project: Project
 ):
     updated = await project_service.update(
         john,
         john_project.id,
-        ProjectUpdate(name="Renamed Project", description="Updated description")
+        ProjectUpdate(name="Renamed Project", description="Updated description"),
     )
     assert updated.name == "Renamed Project"
     assert updated.description == "Updated description"
 
 
 async def test_update_project_forbidden(
-    project_service: ProjectService,
-    alice: User,
-    john_project: Project
+    project_service: ProjectService, alice: User, john_project: Project
 ):
     with pytest.raises(ForbiddenError):
         await project_service.update(
-            alice,
-            john_project.id,
-            ProjectUpdate(name="Hacked Name")
+            alice, john_project.id, ProjectUpdate(name="Hacked Name")
         )
 
 
 async def test_add_member(
-    project_service: ProjectService,
-    john: User,
-    alice: User,
-    john_project: Project
+    project_service: ProjectService, john: User, alice: User, john_project: Project
 ):
     project = await project_service.add_member(john, john_project.id, alice.id)
     assert any(m.id == alice.id for m in project.members)
@@ -114,29 +114,21 @@ async def test_add_member(
 
 
 async def test_add_member_forbidden(
-    project_service: ProjectService,
-    alice: User,
-    john: User,
-    john_project: Project
+    project_service: ProjectService, alice: User, john: User, john_project: Project
 ):
     with pytest.raises(ForbiddenError):
         await project_service.add_member(alice, john_project.id, john.id)
 
 
 async def test_add_member_user_not_found(
-    project_service: ProjectService,
-    john: User,
-    john_project: Project
+    project_service: ProjectService, john: User, john_project: Project
 ):
     with pytest.raises(NotFoundError):
         await project_service.add_member(john, john_project.id, 999999)
 
 
 async def test_remove_member_self(
-    project_service: ProjectService,
-    john: User,
-    alice: User,
-    john_project: Project
+    project_service: ProjectService, john: User, alice: User, john_project: Project
 ):
     await project_service.add_member(john, john_project.id, alice.id)
 
@@ -146,10 +138,7 @@ async def test_remove_member_self(
 
 
 async def test_remove_member_by_owner(
-    project_service: ProjectService,
-    john: User,
-    alice: User,
-    john_project: Project
+    project_service: ProjectService, john: User, alice: User, john_project: Project
 ):
     await project_service.add_member(john, john_project.id, alice.id)
 
@@ -162,10 +151,9 @@ async def test_remove_member_forbidden(
     admin: User,
     john: User,
     alice: User,
-    john_project: Project
+    john_project: Project,
 ):
     await project_service.add_member(john, john_project.id, alice.id)
 
     with pytest.raises(ForbiddenError):
         await project_service.remove_member(alice, john_project.id, john.id)
-

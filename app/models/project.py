@@ -23,11 +23,11 @@ class Project(Base):
     owner_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"), nullable=False
     )  # to infer a relationship between User and Project; otherwise, the database won't bind them
-    owner: Mapped["User"] = relationship( # noqa: F821 # ty: ignore[unresolved-reference]
+    owner: Mapped["User"] = relationship(  # noqa: F821 # ty: ignore[unresolved-reference]
         back_populates="owned_projects"
     )  # uses User.projects
 
-    issues: Mapped[list["Issue"]] = relationship(back_populates="project") # noqa: F821 # ty: ignore[unresolved-reference]
-    members: Mapped[list["User"]] = relationship( # noqa: F821 # ty: ignore[unresolved-reference]
+    issues: Mapped[list["Issue"]] = relationship(back_populates="project")  # noqa: F821 # ty: ignore[unresolved-reference]
+    members: Mapped[list["User"]] = relationship(  # noqa: F821 # ty: ignore[unresolved-reference]
         secondary=project_members, back_populates="joined_projects"
     )

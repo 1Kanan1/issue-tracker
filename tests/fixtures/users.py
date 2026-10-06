@@ -1,4 +1,3 @@
-
 import pytest
 import pytest_asyncio
 
@@ -11,15 +10,15 @@ from app.services.user import UserService
 
 @pytest.fixture
 def john_data() -> UserCreate:
-    return UserCreate(
-        username="john", email="john@example.com", password="secret123"
-)
+    return UserCreate(username="john", email="john@example.com", password="secret123")
+
 
 @pytest.fixture
 def alice_data() -> UserCreate:
     return UserCreate(
         username="alice", email="alice@example.com", password="password123"
     )
+
 
 @pytest.fixture
 def admin_data() -> UserCreate:
@@ -32,9 +31,11 @@ def admin_data() -> UserCreate:
 async def john(user_service: UserService, john_data: UserCreate) -> User:
     return await user_service.create(john_data)
 
+
 @pytest_asyncio.fixture
 async def alice(user_service: UserService, alice_data: UserCreate) -> User:
     return await user_service.create(alice_data)
+
 
 @pytest_asyncio.fixture
 async def admin(user_service: UserService, admin_data: UserCreate) -> User:
@@ -45,9 +46,11 @@ async def admin(user_service: UserService, admin_data: UserCreate) -> User:
 async def john_token(john: User) -> str:
     return create_access_token(john.id)
 
+
 @pytest_asyncio.fixture
 async def alice_token(alice: User) -> str:
     return create_access_token(alice.id)
+
 
 @pytest_asyncio.fixture
 async def admin_token(admin: User) -> str:
@@ -56,9 +59,7 @@ async def admin_token(admin: User) -> str:
 
 @pytest.fixture
 def bob_data() -> UserCreate:
-    return UserCreate(
-        username="bob", email="bob@example.com", password="password123"
-    )
+    return UserCreate(username="bob", email="bob@example.com", password="password123")
 
 
 @pytest_asyncio.fixture

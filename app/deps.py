@@ -24,14 +24,18 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{API_VER}/auth/login")
 
 logger = logging.getLogger(__name__)
 
+
 def get_user_service(db: DbDep) -> UserService:
     return UserService(db)
+
 
 def get_project_service(db: DbDep) -> ProjectService:
     return ProjectService(db)
 
+
 def get_issue_service(db: DbDep) -> IssueService:
     return IssueService(db)
+
 
 def get_comment_service(db: DbDep) -> CommentService:
     return CommentService(db)

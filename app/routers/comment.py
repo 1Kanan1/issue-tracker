@@ -5,16 +5,17 @@ from app.schemas.comment import CommentCreate, CommentResponse, CommentUpdate
 
 router = APIRouter(tags=["comments"])
 
+
 @router.post(
     "/issues/{issue_id}/comments",
     status_code=status.HTTP_201_CREATED,
-    response_model=CommentResponse
+    response_model=CommentResponse,
 )
 async def create_comment(
     issue_id: int,
     current_user: CurrentUserDep,
     service: CommentServiceDep,
-    data: CommentCreate
+    data: CommentCreate,
 ):
     return await service.create(current_user, issue_id, data)
 
@@ -25,20 +26,17 @@ async def get_comments(
     current_user: CurrentUserDep,
     service: CommentServiceDep,
     skip: int = 0,
-    limit : int = 20
+    limit: int = 20,
 ):
     return await service.list_for_issue(current_user, issue_id, skip, limit)
 
 
-@router.patch(
-    "/comments/{comment_id}",
-    response_model=CommentResponse
-)
+@router.patch("/comments/{comment_id}", response_model=CommentResponse)
 async def update_comment(
     comment_id: int,
     current_user: CurrentUserDep,
     service: CommentServiceDep,
-    data: CommentUpdate
+    data: CommentUpdate,
 ):
     return await service.update(current_user, comment_id, data)
 

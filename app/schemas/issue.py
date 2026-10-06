@@ -13,13 +13,15 @@ class IssueCreate(BaseModel):
     assignee_id: int | None = None
     due_date: date | None = None
 
-class IssueUpdate(BaseModel): 
+
+class IssueUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
     status: IssueStatus | None = None
     priority: Priority | None = None
     assignee_id: int | None = None
     due_date: date | None = None
+
 
 class IssueResponse(BaseModel):
     id: int

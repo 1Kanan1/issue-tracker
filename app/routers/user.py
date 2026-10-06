@@ -7,7 +7,7 @@ from app.schemas.user import UserCreate, UserResponse, UserUpdate
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.get('/me', response_model=UserResponse)
+@router.get("/me", response_model=UserResponse)
 async def get_current_user_profile(
     current_user: CurrentUserDep,
 ):
@@ -17,16 +17,14 @@ async def get_current_user_profile(
 @router.get(
     "",
     response_model=list[UserResponse],
-    dependencies=[Depends(require_permission(Permission.USER_READ))]
+    dependencies=[Depends(require_permission(Permission.USER_READ))],
 )
 async def list_users(service: UserServiceDep, skip: int = 0, limit: int = 20):
     return await service.list(skip=skip, limit=limit)
 
 
 @router.get(
-    "/{user_id}",
-    response_model=UserResponse,
-    dependencies=[Depends(get_current_user)]
+    "/{user_id}", response_model=UserResponse, dependencies=[Depends(get_current_user)]
 )
 async def get_user(user_id: int, service: UserServiceDep):
     return await service.get_by_id(
@@ -43,11 +41,9 @@ async def create_user(data: UserCreate, service: UserServiceDep):
     return await service.create(data)
 
 
-@router.patch('/me', response_model=UserResponse)
+@router.patch("/me", response_model=UserResponse)
 async def update_current_user(
-        data: UserUpdate,
-        current_user: CurrentUserDep,
-        service: UserServiceDep
+    data: UserUpdate, current_user: CurrentUserDep, service: UserServiceDep
 ):
     return await service.update(current_user.id, data)
 
@@ -55,7 +51,7 @@ async def update_current_user(
 @router.patch(
     "/{user_id}",
     response_model=UserResponse,
-    dependencies=[Depends(require_permission(Permission.USER_UPDATE))]
+    dependencies=[Depends(require_permission(Permission.USER_UPDATE))],
 )
 async def update_user(user_id: int, data: UserUpdate, service: UserServiceDep):
     return await service.update(
@@ -64,13 +60,10 @@ async def update_user(user_id: int, data: UserUpdate, service: UserServiceDep):
 
 
 @router.delete(
-    '/me',
+    "/me",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-async def delete_current_user(
-        current_user: CurrentUserDep,
-        service: UserServiceDep
-):
+async def delete_current_user(current_user: CurrentUserDep, service: UserServiceDep):
     return await service.delete(current_user.id)
 
 

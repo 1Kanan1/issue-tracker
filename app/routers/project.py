@@ -9,39 +9,39 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 
 @router.get("", response_model=list[ProjectResponse])
 async def list_projects(
-        service: ProjectServiceDep,
-        current_user: CurrentUserDep,
-        skip: int = 0,
-        limit: int = 20
+    service: ProjectServiceDep,
+    current_user: CurrentUserDep,
+    skip: int = 0,
+    limit: int = 20,
 ):
     return await service.list_for_user(current_user, skip, limit)
+
 
 @router.post(
     "",
     dependencies=[Depends(require_permission(Permission.PROJECT_CREATE))],
     status_code=status.HTTP_201_CREATED,
-    response_model=ProjectResponse
+    response_model=ProjectResponse,
 )
-async def create_project(data: ProjectCreate, current_user: CurrentUserDep, service: ProjectServiceDep):
+async def create_project(
+    data: ProjectCreate, current_user: CurrentUserDep, service: ProjectServiceDep
+):
     return await service.create(current_user.id, data)
 
-@router.get(
-    "/{project_id}",
-    response_model=ProjectResponse
-)
-async def get_project(project_id: int, current_user: CurrentUserDep, service: ProjectServiceDep):
+
+@router.get("/{project_id}", response_model=ProjectResponse)
+async def get_project(
+    project_id: int, current_user: CurrentUserDep, service: ProjectServiceDep
+):
     return await service.get_by_id(current_user, project_id)
 
 
-@router.patch(
-    "/{project_id}",
-    response_model=ProjectResponse
-)
+@router.patch("/{project_id}", response_model=ProjectResponse)
 async def update_project(
     data: ProjectUpdate,
     project_id: int,
     current_user: CurrentUserDep,
-    service: ProjectServiceDep
+    service: ProjectServiceDep,
 ):
     return await service.update(current_user, project_id, data)
 

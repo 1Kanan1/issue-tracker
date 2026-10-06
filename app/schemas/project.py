@@ -9,10 +9,12 @@ class ProjectCreate(BaseModel):
     description: str | None = None
     status: ProjectStatus = ProjectStatus.ACTIVE
 
+
 class ProjectUpdate(BaseModel):
     name: str | None = None
     description: str | None = None
     status: ProjectStatus | None = None
+
 
 class ProjectResponse(BaseModel):
     id: int

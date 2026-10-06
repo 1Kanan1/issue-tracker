@@ -14,8 +14,7 @@ class Settings(BaseSettings):
     admin_password: str = ""
 
     model_config = SettingsConfigDict(
-        env_file=os.getenv("ENV_FILE", ".env"),
-        extra="ignore"
+        env_file=os.getenv("ENV_FILE", ".env"), extra="ignore"
     )
 
 

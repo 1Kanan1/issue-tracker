@@ -23,21 +23,21 @@ class IssueService:
         if not project:
             raise NotFoundError("Project", project_id)
 
-        is_member_or_owner = (
-            current_user.id == project.owner_id
-            or any(m.id == current_user.id for m in project.members)
+        is_member_or_owner = current_user.id == project.owner_id or any(
+            m.id == current_user.id for m in project.members
         )
 
         if current_user.role != Role.ADMIN and not is_member_or_owner:
             raise ForbiddenError("You are not a member of this project")
 
         if data.assignee_id:
-            valid_assignee = (
-                data.assignee_id == project.owner_id
-                or any(m.id == data.assignee_id for m in project.members)
+            valid_assignee = data.assignee_id == project.owner_id or any(
+                m.id == data.assignee_id for m in project.members
             )
             if not valid_assignee:
-                raise ForbiddenError("Assignee must be a member or owner of the project")
+                raise ForbiddenError(
+                    "Assignee must be a member or owner of the project"
+                )
 
         new_issue = Issue(
             title=data.title,
@@ -46,7 +46,7 @@ class IssueService:
             assignee_id=data.assignee_id,
             due_date=data.due_date,
             creator_id=current_user.id,
-            project_id=project_id
+            project_id=project_id,
         )
 
         self.db.add(new_issue)
@@ -54,7 +54,6 @@ class IssueService:
         await self.db.refresh(new_issue, ["creator", "assignee"])
 
         return new_issue
-
 
     async def get_by_id(self, current_user: User, issue_id: int) -> Issue:
         query = (
@@ -71,9 +70,8 @@ class IssueService:
             raise NotFoundError("Issue", issue_id)
 
         # Admins bypass, but everyone else must be project owner or member
-        is_project_member = (
-            current_user.id == issue.project.owner_id
-            or any(m.id == current_user.id for m in issue.project.members)
+        is_project_member = current_user.id == issue.project.owner_id or any(
+            m.id == current_user.id for m in issue.project.members
         )
         if current_user.role != Role.ADMIN and not is_project_member:
             raise ForbiddenError("You do not have access to this project's issues")
@@ -97,15 +95,14 @@ class IssueService:
             .options(selectinload(Project.members))
             .where(Project.id == project_id)
         )
-        
+
         project = (await self.db.execute(query)).scalar_one_or_none()
 
         if not project:
             raise NotFoundError("Project", project_id)
 
-        is_member_or_owner = (
-            current_user.id == project.owner_id
-            or any(m.id == current_user.id for m in project.members)
+        is_member_or_owner = current_user.id == project.owner_id or any(
+            m.id == current_user.id for m in project.members
         )
 
         if current_user.role != Role.ADMIN and not is_member_or_owner:
@@ -113,10 +110,7 @@ class IssueService:
 
         query = (
             select(Issue)
-            .options(
-                joinedload(Issue.creator),
-                joinedload(Issue.assignee)
-            )
+            .options(joinedload(Issue.creator), joinedload(Issue.assignee))
             .where(Issue.project_id == project_id)
         )
 
@@ -156,18 +150,23 @@ class IssueService:
         update_data = data.model_dump(exclude_unset=True)
 
         if update_data.get("assignee_id") is not None:
-            valid_assignee = (
-                update_data["assignee_id"] == issue.project.owner_id
-                or any(m.id == update_data["assignee_id"] for m in issue.project.members)
+            valid_assignee = update_data[
+                "assignee_id"
+            ] == issue.project.owner_id or any(
+                m.id == update_data["assignee_id"] for m in issue.project.members
             )
             if not valid_assignee:
-                raise ForbiddenError("Assignee must be a member or owner of the project")
+                raise ForbiddenError(
+                    "Assignee must be a member or owner of the project"
+                )
 
         for field, value in update_data.items():
             setattr(issue, field, value)
 
         await self.db.commit()
-        await self.db.refresh(issue, ["creator", "assignee", "updated_at", "created_at"])
+        await self.db.refresh(
+            issue, ["creator", "assignee", "updated_at", "created_at"]
+        )
 
         return issue
 
@@ -180,7 +179,9 @@ class IssueService:
             or current_user.id == issue.creator_id
         )
         if not can_delete:
-            raise ForbiddenError("Only issue creator, project owner, or admin can delete issue")
+            raise ForbiddenError(
+                "Only issue creator, project owner, or admin can delete issue"
+            )
 
         await self.db.delete(issue)
         await self.db.commit()

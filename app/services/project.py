@@ -11,6 +11,7 @@ from app.schemas.project import ProjectCreate, ProjectUpdate
 
 logger = logging.getLogger(__name__)
 
+
 class ProjectService:
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -25,9 +26,8 @@ class ProjectService:
             name=data.name,
             description=data.description,
             status=data.status,
-            owner_id=owner_id
+            owner_id=owner_id,
         )
-
 
         self.db.add(new_project)
         await self.db.commit()
@@ -37,8 +37,7 @@ class ProjectService:
 
     async def get_by_id(self, user: User, project_id: int) -> Project:
         query = select(Project).options(
-            joinedload(Project.owner),
-            selectinload(Project.members)
+            joinedload(Project.owner), selectinload(Project.members)
         )
 
         result = await self.db.execute(query.where(Project.id == project_id))
@@ -65,17 +64,19 @@ class ProjectService:
         )
         return result.scalar_one_or_none()
 
-    async def list_for_user(self, user: User, skip: int = 0, limit: int = 20) -> list[Project]:
+    async def list_for_user(
+        self, user: User, skip: int = 0, limit: int = 20
+    ) -> list[Project]:
         query = select(Project).options(
-            joinedload(Project.owner),      # loads 1-to-1 owner
-            selectinload(Project.members)   # loads M2M members
-        ) # prevents N+1 problem
+            joinedload(Project.owner),  # loads 1-to-1 owner
+            selectinload(Project.members),  # loads M2M members
+        )  # prevents N+1 problem
 
         if user.role != Role.ADMIN:
             query = query.where(
                 or_(
                     Project.owner_id == user.id,
-                    Project.members.any(User.id == user.id) # EXISTS subquery
+                    Project.members.any(User.id == user.id),  # EXISTS subquery
                 )
             )
 
@@ -87,7 +88,9 @@ class ProjectService:
         project = await self.get_by_id(current_user, project_id)
 
         if current_user.role != Role.ADMIN and project.owner_id != current_user.id:
-            raise ForbiddenError("Only project owner or admin can update project details")
+            raise ForbiddenError(
+                "Only project owner or admin can update project details"
+            )
 
         update_data = data.model_dump(exclude_unset=True)
 
@@ -97,11 +100,15 @@ class ProjectService:
         await self.db.commit()
         await self.db.refresh(project, ["owner", "members"])
 
-        logger.info("update(id=%d, fields=%s)", current_user.id, list(update_data.keys()))
+        logger.info(
+            "update(id=%d, fields=%s)", current_user.id, list(update_data.keys())
+        )
 
         return project
 
-    async def add_member(self, current_user: User, project_id: int, user_id: int) -> Project:
+    async def add_member(
+        self, current_user: User, project_id: int, user_id: int
+    ) -> Project:
         project = await self.get_by_id(current_user, project_id)
 
         if current_user.role != Role.ADMIN and project.owner_id != current_user.id:
@@ -120,7 +127,9 @@ class ProjectService:
 
         return project
 
-    async def remove_member(self, current_user: User, project_id: int, user_id: int) -> Project:
+    async def remove_member(
+        self, current_user: User, project_id: int, user_id: int
+    ) -> Project:
         project = await self.get_by_id(current_user, project_id)
 
         if not (
@@ -132,7 +141,7 @@ class ProjectService:
 
         if user_id == project.owner_id:
             raise ForbiddenError("Project owner cannot be removed")
-        
+
         user = await self.db.get(User, user_id)
         if not user:
             raise NotFoundError("User", user_id)

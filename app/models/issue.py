@@ -20,17 +20,17 @@ class Issue(Base):
         ForeignKey("projects.id"),
         nullable=False,
     )
-    project: Mapped["Project"] = relationship( # noqa: F821 # ty: ignore[unresolved-reference]
+    project: Mapped["Project"] = relationship(  # noqa: F821 # ty: ignore[unresolved-reference]
         foreign_keys=[project_id], back_populates="issues"
     )
 
-    comments: Mapped[list["Comment"]] = relationship(back_populates="issue") # noqa: F821 # ty: ignore[unresolved-reference]
+    comments: Mapped[list["Comment"]] = relationship(back_populates="issue")  # noqa: F821 # ty: ignore[unresolved-reference]
 
     creator_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"),
         nullable=False,
     )
-    creator: Mapped["User"] = relationship( # noqa: F821 # ty: ignore[unresolved-reference]
+    creator: Mapped["User"] = relationship(  # noqa: F821 # ty: ignore[unresolved-reference]
         foreign_keys=[creator_id], back_populates="created_issues"
     )
 
@@ -38,7 +38,7 @@ class Issue(Base):
         ForeignKey("users.id"),
         nullable=True,
     )
-    assignee: Mapped["User | None"] = relationship( # noqa: F821 # ty: ignore[unresolved-reference]
+    assignee: Mapped["User | None"] = relationship(  # noqa: F821 # ty: ignore[unresolved-reference]
         foreign_keys=[assignee_id], back_populates="assigned_issues"
     )
 

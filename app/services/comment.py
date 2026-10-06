@@ -15,10 +15,7 @@ class CommentService:
     async def _verify_issue_access(self, current_user: User, issue_id: int):
         query = (
             select(Issue)
-            .options(
-                joinedload(Issue.project)
-                .selectinload(Project.members)
-            )
+            .options(joinedload(Issue.project).selectinload(Project.members))
             .where(Issue.id == issue_id)
         )
         issue = (await self.db.execute(query)).scalar_one_or_none()
@@ -26,9 +23,8 @@ class CommentService:
         if not issue:
             raise NotFoundError("Issue", issue_id)
 
-        is_project_member = (
-            current_user.id == issue.project.owner_id
-            or any(m.id == current_user.id for m in issue.project.members)
+        is_project_member = current_user.id == issue.project.owner_id or any(
+            m.id == current_user.id for m in issue.project.members
         )
 
         if current_user.role != Role.ADMIN and not is_project_member:
@@ -38,9 +34,7 @@ class CommentService:
         await self._verify_issue_access(current_user, issue_id)
 
         new_comment = Comment(
-            content=data.content,
-            author_id=current_user.id,
-            issue_id=issue_id
+            content=data.content, author_id=current_user.id, issue_id=issue_id
         )
 
         self.db.add(new_comment)
@@ -49,7 +43,9 @@ class CommentService:
 
         return new_comment
 
-    async def list_for_issue(self, current_user: User, issue_id: int, skip: int = 0, limit: int = 20) -> list[Comment]:
+    async def list_for_issue(
+        self, current_user: User, issue_id: int, skip: int = 0, limit: int = 20
+    ) -> list[Comment]:
         await self._verify_issue_access(current_user, issue_id)
 
         query = (
@@ -70,7 +66,7 @@ class CommentService:
             select(Comment)
             .options(
                 joinedload(Comment.author),
-                joinedload(Comment.issue).joinedload(Issue.project)
+                joinedload(Comment.issue).joinedload(Issue.project),
             )
             .where(Comment.id == comment_id)
         )
@@ -110,7 +106,9 @@ class CommentService:
             or current_user.id == comment.issue.project.owner_id
         )
         if not can_delete:
-            raise ForbiddenError("Only author, project owner, or admin can delete this comment")
+            raise ForbiddenError(
+                "Only author, project owner, or admin can delete this comment"
+            )
 
         await self.db.delete(comment)
         await self.db.commit()

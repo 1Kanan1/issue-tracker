@@ -16,18 +16,18 @@ class User(Base):
     role: Mapped[Role] = mapped_column(default=Role.MEMBER)
     is_disabled: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    owned_projects: Mapped[list["Project"]] = relationship( # noqa: F821 # ty: ignore[unresolved-reference]
+    owned_projects: Mapped[list["Project"]] = relationship(  # noqa: F821 # ty: ignore[unresolved-reference]
         back_populates="owner"
     )  # uses Project.owner
-    joined_projects: Mapped[list["Project"]] = relationship( # noqa: F821 # ty: ignore[unresolved-reference]
+    joined_projects: Mapped[list["Project"]] = relationship(  # noqa: F821 # ty: ignore[unresolved-reference]
         secondary="project_members", back_populates="members"
     )
 
-    created_issues: Mapped[list["Issue"]] = relationship( # noqa: F821 # ty: ignore[unresolved-reference]
+    created_issues: Mapped[list["Issue"]] = relationship(  # noqa: F821 # ty: ignore[unresolved-reference]
         foreign_keys="Issue.creator_id", back_populates="creator"
     )
-    assigned_issues: Mapped[list["Issue"]] = relationship( # noqa: F821 # ty: ignore[unresolved-reference]
+    assigned_issues: Mapped[list["Issue"]] = relationship(  # noqa: F821 # ty: ignore[unresolved-reference]
         foreign_keys="Issue.assignee_id", back_populates="assignee"
     )
 
-    comments: Mapped[list["Comment"]] = relationship(back_populates="author") # noqa: F821 # ty: ignore[unresolved-reference]
+    comments: Mapped[list["Comment"]] = relationship(back_populates="author")  # noqa: F821 # ty: ignore[unresolved-reference]

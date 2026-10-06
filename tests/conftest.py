@@ -43,6 +43,7 @@ app_security.password_hash = PasswordHash(
     (Argon2Hasher(time_cost=1, memory_cost=8, parallelism=1),)
 )
 
+
 @pytest_asyncio.fixture
 async def db():
     engine = create_async_engine(settings.database_url)
@@ -50,17 +51,16 @@ async def db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    session_factory = async_sessionmaker(
-        engine,
-        expire_on_commit=False
-    )
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
     async with session_factory() as session:
         try:
             yield session
         finally:
             await session.rollback()
             await session.execute(
-                text("TRUNCATE TABLE users, projects, issues, comments, project_members CASCADE;")		
+                text(
+                    "TRUNCATE TABLE users, projects, issues, comments, project_members CASCADE;"
+                )
             )
             await session.commit()
 
@@ -71,17 +71,21 @@ async def db():
 async def user_service(db: AsyncSession):
     return UserService(db)
 
+
 @pytest_asyncio.fixture
 async def project_service(db: AsyncSession):
     return ProjectService(db)
+
 
 @pytest_asyncio.fixture
 async def issue_service(db: AsyncSession):
     return IssueService(db)
 
+
 @pytest_asyncio.fixture
 async def comment_service(db: AsyncSession):
     return CommentService(db)
+
 
 @pytest_asyncio.fixture
 async def client(db: AsyncSession):
