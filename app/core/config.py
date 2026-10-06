@@ -13,6 +13,7 @@ class Settings(BaseSettings):
 
     admin_username: str = ""
     admin_password: str = ""
+    admin_email: str = ""
 
     model_config = SettingsConfigDict(
         env_file=os.getenv("ENV_FILE", ".env"), extra="ignore"
