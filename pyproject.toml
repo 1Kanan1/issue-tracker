@@ -19,7 +19,16 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest>=9.1.1", "pytest-asyncio>=1.4.0"]
+dev = ["pytest>=9.1.1", "pytest-asyncio>=1.4.0", "ruff>=0.16.10"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+
+[tool.ruff.lint.per-file-ignores]
+# SQLAlchemy resolves relationship annotations as strings from its own registry
+# at mapper configuration time, so the referenced class needs no import. A real
+# import would be circular (User -> Issue -> User).
+"app/models/*.py" = ["F821"]
+
+[tool.ruff]
+target-version = "py313"
