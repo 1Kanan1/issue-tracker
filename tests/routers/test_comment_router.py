@@ -1,11 +1,9 @@
-import pytest
 from httpx import AsyncClient
 
 from app.models import Issue, Project, User
 from app.services.project import ProjectService
 
 
-@pytest.mark.asyncio
 async def test_create_comment_member_success(
     client: AsyncClient,
     john: User,
@@ -31,7 +29,6 @@ async def test_create_comment_member_success(
     assert "updated_at" in data
 
 
-@pytest.mark.asyncio
 async def test_create_comment_non_member_forbidden(
     client: AsyncClient,
     john_issue: Issue,
@@ -45,7 +42,6 @@ async def test_create_comment_non_member_forbidden(
     assert response.status_code == 403, response.text
 
 
-@pytest.mark.asyncio
 async def test_create_comment_issue_not_found(
     client: AsyncClient,
     john_token: str,
@@ -58,7 +54,6 @@ async def test_create_comment_issue_not_found(
     assert response.status_code == 404, response.text
 
 
-@pytest.mark.asyncio
 async def test_list_comments_chronological(
     client: AsyncClient,
     john: User,
@@ -95,7 +90,6 @@ async def test_list_comments_chronological(
     assert data[1]["author"]["id"] == john.id
 
 
-@pytest.mark.asyncio
 async def test_list_comments_non_member_forbidden(
     client: AsyncClient,
     john_issue: Issue,
@@ -108,7 +102,6 @@ async def test_list_comments_non_member_forbidden(
     assert response.status_code == 403, response.text
 
 
-@pytest.mark.asyncio
 async def test_update_comment_author_success(
     client: AsyncClient,
     john_token: str,
@@ -130,7 +123,6 @@ async def test_update_comment_author_success(
     assert response.json()["content"] == "Edited comment content"
 
 
-@pytest.mark.asyncio
 async def test_update_comment_non_author_forbidden(
     client: AsyncClient,
     john: User,
@@ -159,7 +151,6 @@ async def test_update_comment_non_author_forbidden(
     assert response.status_code == 403, response.text
 
 
-@pytest.mark.asyncio
 async def test_delete_comment_author_success(
     client: AsyncClient,
     john_token: str,
@@ -179,7 +170,6 @@ async def test_delete_comment_author_success(
     assert response.status_code == 204, response.text
 
 
-@pytest.mark.asyncio
 async def test_delete_comment_project_owner_success(
     client: AsyncClient,
     john: User,
@@ -207,7 +197,6 @@ async def test_delete_comment_project_owner_success(
     assert response.status_code == 204, response.text
 
 
-@pytest.mark.asyncio
 async def test_delete_comment_other_member_forbidden(
     client: AsyncClient,
     john: User,

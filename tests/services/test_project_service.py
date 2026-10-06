@@ -6,24 +6,20 @@ from app.schemas.project import ProjectCreate, ProjectUpdate
 from app.services.project import ProjectService
 
 
-@pytest.mark.asyncio
 async def test_get_project(project_service: ProjectService, john: User, john_project: Project):
     project = await project_service.get_by_id(john, john_project.id)
 
     assert project.id == john_project.id
     assert project.owner == john
 
-@pytest.mark.asyncio
 async def test_project_not_found(project_service: ProjectService, john: User,):
     with pytest.raises(NotFoundError):
         await project_service.get_by_id(john, 999999)
 
-@pytest.mark.asyncio
 async def test_project_forbidden(project_service: ProjectService, john: User, alice_project: Project):
     with pytest.raises(ForbiddenError):
         await project_service.get_by_id(john, alice_project.id)
 
-@pytest.mark.asyncio
 async def test_get_projects(
     project_service: ProjectService,
     admin: User,
@@ -37,7 +33,6 @@ async def test_get_projects(
     assert john_project in projects
     assert alice_project in projects
 
-@pytest.mark.asyncio
 async def test_create_project(
     project_service: ProjectService,
     john: User,
@@ -51,7 +46,6 @@ async def test_create_project(
     assert project.status == john_project_data.status
 
 
-@pytest.mark.asyncio
 async def test_project_already_exists(
     project_service: ProjectService,
     john: User,
@@ -62,7 +56,6 @@ async def test_project_already_exists(
         await project_service.create(john.id, john_project_data)
 
 
-@pytest.mark.asyncio
 async def test_list_projects_member_scoped(
     project_service: ProjectService,
     john: User,
@@ -79,7 +72,6 @@ async def test_list_projects_member_scoped(
     assert alice_projects[0].id == alice_project.id
 
 
-@pytest.mark.asyncio
 async def test_update_project(
     project_service: ProjectService,
     john: User,
@@ -94,7 +86,6 @@ async def test_update_project(
     assert updated.description == "Updated description"
 
 
-@pytest.mark.asyncio
 async def test_update_project_forbidden(
     project_service: ProjectService,
     alice: User,
@@ -108,7 +99,6 @@ async def test_update_project_forbidden(
         )
 
 
-@pytest.mark.asyncio
 async def test_add_member(
     project_service: ProjectService,
     john: User,
@@ -123,7 +113,6 @@ async def test_add_member(
     assert fetched.id == john_project.id
 
 
-@pytest.mark.asyncio
 async def test_add_member_forbidden(
     project_service: ProjectService,
     alice: User,
@@ -134,7 +123,6 @@ async def test_add_member_forbidden(
         await project_service.add_member(alice, john_project.id, john.id)
 
 
-@pytest.mark.asyncio
 async def test_add_member_user_not_found(
     project_service: ProjectService,
     john: User,
@@ -144,7 +132,6 @@ async def test_add_member_user_not_found(
         await project_service.add_member(john, john_project.id, 999999)
 
 
-@pytest.mark.asyncio
 async def test_remove_member_self(
     project_service: ProjectService,
     john: User,
@@ -158,7 +145,6 @@ async def test_remove_member_self(
     assert not any(m.id == alice.id for m in project.members)
 
 
-@pytest.mark.asyncio
 async def test_remove_member_by_owner(
     project_service: ProjectService,
     john: User,
@@ -171,7 +157,6 @@ async def test_remove_member_by_owner(
     assert not any(m.id == alice.id for m in project.members)
 
 
-@pytest.mark.asyncio
 async def test_remove_member_forbidden(
     project_service: ProjectService,
     admin: User,

@@ -1,4 +1,3 @@
-import pytest
 from httpx import AsyncClient
 
 from app.enums import IssueStatus, Priority
@@ -6,7 +5,6 @@ from app.models import Issue, Project, User
 from app.services.project import ProjectService
 
 
-@pytest.mark.asyncio
 async def test_create_issue_owner(
     client: AsyncClient,
     john: User,
@@ -32,7 +30,6 @@ async def test_create_issue_owner(
     assert data["assignee"] is None
 
 
-@pytest.mark.asyncio
 async def test_create_issue_with_member_assignee(
     client: AsyncClient,
     john_token: str,
@@ -56,7 +53,6 @@ async def test_create_issue_with_member_assignee(
     assert data["assignee"]["id"] == alice.id
 
 
-@pytest.mark.asyncio
 async def test_create_issue_assignee_not_member_forbidden(
     client: AsyncClient,
     john_token: str,
@@ -74,7 +70,6 @@ async def test_create_issue_assignee_not_member_forbidden(
     assert res.status_code == 403, res.text
 
 
-@pytest.mark.asyncio
 async def test_create_issue_non_member_forbidden(
     client: AsyncClient,
     alice_token: str,
@@ -88,7 +83,6 @@ async def test_create_issue_non_member_forbidden(
     assert res.status_code == 403, res.text
 
 
-@pytest.mark.asyncio
 async def test_create_issue_project_not_found(
     client: AsyncClient,
     admin_token: str,
@@ -101,7 +95,6 @@ async def test_create_issue_project_not_found(
     assert res.status_code == 404, res.text
 
 
-@pytest.mark.asyncio
 async def test_get_issue_success(
     client: AsyncClient,
     john_token: str,
@@ -117,7 +110,6 @@ async def test_get_issue_success(
     assert data["title"] == john_issue.title
 
 
-@pytest.mark.asyncio
 async def test_get_issue_forbidden_for_non_member(
     client: AsyncClient,
     alice_token: str,
@@ -130,7 +122,6 @@ async def test_get_issue_forbidden_for_non_member(
     assert res.status_code == 403, res.text
 
 
-@pytest.mark.asyncio
 async def test_list_issues_for_project(
     client: AsyncClient,
     john_token: str,
@@ -157,7 +148,6 @@ async def test_list_issues_for_project(
     assert {item["title"] for item in data} == {"Issue 1", "Issue 2"}
 
 
-@pytest.mark.asyncio
 async def test_update_issue_status_and_assignee(
     client: AsyncClient,
     john_token: str,
@@ -185,7 +175,6 @@ async def test_update_issue_status_and_assignee(
     assert data["assignee"]["id"] == alice.id
 
 
-@pytest.mark.asyncio
 async def test_delete_issue(
     client: AsyncClient,
     john_token: str,

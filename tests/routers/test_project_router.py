@@ -1,10 +1,8 @@
-import pytest
 from httpx import AsyncClient
 
 from app.models import Project, User
 
 
-@pytest.mark.asyncio
 async def test_create_project_admin(client: AsyncClient, admin_token: str):
     res = await client.post(
         "/projects",
@@ -19,7 +17,6 @@ async def test_create_project_admin(client: AsyncClient, admin_token: str):
     assert data["members"] == []
 
 
-@pytest.mark.asyncio
 async def test_create_project_member_forbidden(client: AsyncClient, alice_token: str):
     res = await client.post(
         "/projects",
@@ -29,7 +26,6 @@ async def test_create_project_member_forbidden(client: AsyncClient, alice_token:
     assert res.status_code == 403, res.text
 
 
-@pytest.mark.asyncio
 async def test_list_projects(
     client: AsyncClient,
     admin_token: str,
@@ -55,7 +51,6 @@ async def test_list_projects(
     assert john_list[0]["id"] == john_project.id
 
 
-@pytest.mark.asyncio
 async def test_get_project_success(
     client: AsyncClient,
     john_token: str,
@@ -69,7 +64,6 @@ async def test_get_project_success(
     assert res.json()["id"] == john_project.id
 
 
-@pytest.mark.asyncio
 async def test_get_project_forbidden(
     client: AsyncClient,
     alice_token: str,
@@ -82,7 +76,6 @@ async def test_get_project_forbidden(
     assert res.status_code == 403, res.text
 
 
-@pytest.mark.asyncio
 async def test_get_project_not_found(client: AsyncClient, admin_token: str):
     res = await client.get(
         "/projects/999999",
@@ -91,7 +84,6 @@ async def test_get_project_not_found(client: AsyncClient, admin_token: str):
     assert res.status_code == 404, res.text
 
 
-@pytest.mark.asyncio
 async def test_update_project(
     client: AsyncClient,
     john_token: str,
@@ -108,7 +100,6 @@ async def test_update_project(
     assert data["description"] == "New Description"
 
 
-@pytest.mark.asyncio
 async def test_update_project_forbidden(
     client: AsyncClient,
     alice_token: str,
@@ -122,7 +113,6 @@ async def test_update_project_forbidden(
     assert res.status_code == 403, res.text
 
 
-@pytest.mark.asyncio
 async def test_add_and_remove_member(
     client: AsyncClient,
     john_token: str,
@@ -153,7 +143,6 @@ async def test_add_and_remove_member(
     assert alice.id not in remaining_ids
 
 
-@pytest.mark.asyncio
 async def test_add_member_forbidden(
     client: AsyncClient,
     alice_token: str,
