@@ -1,10 +1,16 @@
+import jwt
 from httpx import AsyncClient
 
+from app.core import get_settings
+from app.core.constants import ALGORITHM
+from app.models import User
 from app.schemas.user import UserCreate
+
+settings = get_settings()
 
 
 async def test_login_returns_token(
-    client: AsyncClient, john_token: str, john_data: UserCreate
+    client: AsyncClient, john: User, john_data: UserCreate
 ):
     res = await client.post(
         "/auth/login",
@@ -14,4 +20,7 @@ async def test_login_returns_token(
 
     assert res.json() is not None
     assert "access_token" in res.json()
-    assert res.json()["access_token"] == john_token
+    payload = jwt.decode(
+        res.json()["access_token"], settings.secret_key, algorithms=[ALGORITHM]
+    )
+    assert payload["sub"] == str(john.id)
