@@ -102,12 +102,13 @@ class CommentService:
 
         can_delete = (
             current_user.role == Role.ADMIN
+            or current_user.role == Role.MANAGER
             or current_user.id == comment.author_id
             or current_user.id == comment.issue.project.owner_id
         )
         if not can_delete:
             raise ForbiddenError(
-                "Only author, project owner, or admin can delete this comment"
+                "Only author, project owner, manager, or admin can delete this comment"
             )
 
         await self.db.delete(comment)

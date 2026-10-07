@@ -42,6 +42,23 @@ async def admin(user_service: UserService, admin_data: UserCreate) -> User:
     return await user_service.create(admin_data, role=Role.ADMIN)
 
 
+@pytest.fixture
+def manager_data() -> UserCreate:
+    return UserCreate(
+        username="manager", email="manager@example.com", password="supersecret123"
+    )
+
+
+@pytest_asyncio.fixture
+async def manager(user_service: UserService, manager_data: UserCreate) -> User:
+    return await user_service.create(manager_data, role=Role.MANAGER)
+
+
+@pytest_asyncio.fixture
+async def manager_token(manager: User) -> str:
+    return create_access_token(manager.id)
+
+
 @pytest_asyncio.fixture
 async def john_token(john: User) -> str:
     return create_access_token(john.id)

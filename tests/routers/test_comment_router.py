@@ -1,6 +1,7 @@
 from httpx import AsyncClient
 
 from app.models import Issue, Project, User
+from app.security import create_access_token
 from app.services.project import ProjectService
 
 
@@ -223,4 +224,52 @@ async def test_delete_comment_other_member_forbidden(
         f"/comments/{comment_id}",
         headers={"Authorization": f"Bearer {bob_token}"},
     )
+    assert response.status_code == 403, response.text
+
+
+async def test_delete_comment_manager_in_project_allowed(
+    client: AsyncClient,
+    john: User,
+    john_project: Project,
+    john_issue: Issue,
+    manager: User,
+    manager_token: str,
+    project_service: ProjectService,
+):
+    await project_service.add_member(john, john_project.id, manager.id)
+
+    res_create = await client.post(
+        f"/issues/{john_issue.id}/comments",
+        json={"content": "John's comment"},
+        headers={"Authorization": f"Bearer {create_access_token(john.id)}"},
+    )
+    comment_id = res_create.json()["id"]
+
+    response = await client.delete(
+        f"/comments/{comment_id}",
+        headers={"Authorization": f"Bearer {manager_token}"},
+    )
+
+    assert response.status_code == 204, response.text
+
+
+async def test_delete_comment_manager_outside_project_forbidden(
+    client: AsyncClient,
+    john: User,
+    john_issue: Issue,
+    manager: User,
+    manager_token: str,
+):
+    res_create = await client.post(
+        f"/issues/{john_issue.id}/comments",
+        json={"content": "John's comment"},
+        headers={"Authorization": f"Bearer {create_access_token(john.id)}"},
+    )
+    comment_id = res_create.json()["id"]
+
+    response = await client.delete(
+        f"/comments/{comment_id}",
+        headers={"Authorization": f"Bearer {manager_token}"},
+    )
+
     assert response.status_code == 403, response.text
