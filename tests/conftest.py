@@ -2,6 +2,7 @@ import os
 
 os.environ["ENV_FILE"] = ".env.test"
 
+import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from pwdlib import PasswordHash
@@ -14,6 +15,7 @@ from sqlalchemy.ext.asyncio import (
 )
 
 import app.security as app_security
+from app import rate_limit
 from app.core.config import get_settings
 from app.db import Base, get_db
 from app.main import app
@@ -42,6 +44,11 @@ pytest_plugins = [
 app_security.password_hash = PasswordHash(
     (Argon2Hasher(time_cost=1, memory_cost=8, parallelism=1),)
 )
+
+
+@pytest.fixture(autouse=True)
+def reset_login_rate_limit():
+    rate_limit._attempts.clear()
 
 
 @pytest_asyncio.fixture

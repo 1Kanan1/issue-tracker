@@ -1,15 +1,21 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.deps import UserServiceDep
 from app.exceptions.user import AuthenticationError
+from app.rate_limit import rate_limit_login
 from app.schemas.auth import LoginRequest, TokenResponse
 from app.security import create_access_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/login", response_model=TokenResponse)
-async def login(data: LoginRequest, service: UserServiceDep):
+@router.post(
+    "/login", response_model=TokenResponse, dependencies=[Depends(rate_limit_login)]
+)
+async def login(
+    data: LoginRequest,
+    service: UserServiceDep,
+):
     try:
         user = await service.authenticate(data.username, data.password)
     except AuthenticationError:
