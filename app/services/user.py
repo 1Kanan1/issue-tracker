@@ -1,4 +1,5 @@
 import logging
+from functools import cache
 
 from pydantic import EmailStr
 from sqlalchemy import select
@@ -20,6 +21,14 @@ from app.security import hash_password, verify_password
 logger = logging.getLogger(__name__)
 
 
+@cache
+def _dummy_hash() -> str:
+    """Burns a real verification so a missing user costs the same as a wrong
+    password. Lazy so it is built with whichever password_hash is active at
+    first use, not the one that happened to be installed at import time."""
+    return hash_password("timing-equalizer")
+
+
 class UserService:
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -28,13 +37,14 @@ class UserService:
         user = await self.get_by_username(username)
 
         if user is None:
+            verify_password(password, _dummy_hash())
             raise AuthenticationError(f"User with username {username} not found")
-
-        if user.is_disabled:
-            raise AuthenticationError(f"User with username {username} is disabled")
 
         if not verify_password(password, user.password_hash):
             raise AuthenticationError("Invalid password")
+
+        if user.is_disabled:
+            raise AuthenticationError(f"User with username {username} is disabled")
 
         logger.info("authenticate(id=%d, username=%s)", user.id, user.username)
         return user

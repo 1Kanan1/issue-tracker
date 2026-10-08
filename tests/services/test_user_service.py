@@ -1,5 +1,6 @@
 import pytest
 
+import app.services.user as user_service_module
 from app.exceptions.base import AlreadyExistsError, NotFoundError
 from app.exceptions.user import (
     AuthenticationError,
@@ -7,7 +8,7 @@ from app.exceptions.user import (
 from app.models import User
 from app.schemas.user import UserCreate, UserUpdate
 from app.security import verify_password
-from app.services.user import UserService
+from app.services.user import UserService, _dummy_hash
 
 
 async def test_authenticate_success(
@@ -25,6 +26,47 @@ async def test_authenticate_wrong_password(user_service: UserService, alice: Use
 async def test_authenticate_user_not_found(user_service: UserService):
     with pytest.raises(AuthenticationError):
         await user_service.authenticate("nonexistent", "secret12345")
+
+
+async def test_authenticate_does_equal_work_for_unknown_user(
+    user_service: UserService, monkeypatch
+):
+    """A missing user must still cost one password verification (CWE-208)."""
+    calls = []
+    monkeypatch.setattr(
+        user_service_module, "verify_password", lambda *a: calls.append(a) or False
+    )
+
+    with pytest.raises(AuthenticationError):
+        await user_service.authenticate("nonexistent", "whatever")
+
+    assert len(calls) == 1, "unknown user skipped the hash verification"
+
+
+async def test_authenticate_does_equal_work_for_disabled_user(
+    user_service: UserService, alice: User, monkeypatch
+):
+    calls = []
+    real_verify = user_service_module.verify_password
+    monkeypatch.setattr(
+        user_service_module,
+        "verify_password",
+        lambda *a: (calls.append(a), real_verify(*a))[1],
+    )
+
+    await user_service.disable(alice.id)
+
+    with pytest.raises(AuthenticationError):
+        await user_service.authenticate(alice.username, "whatever")
+
+    assert len(calls) == 1, "disabled user skipped the hash verification"
+
+
+def test_dummy_hash_built_with_current_hasher():
+    """Guards the import-time bug: a dummy built with a stale hasher makes
+    unknown usernames measurably slower than real ones under test."""
+    fresh = user_service_module.hash_password("probe")
+    assert _dummy_hash().split("$")[3] == fresh.split("$")[3]
 
 
 async def test_authenticate_disabled_user(
