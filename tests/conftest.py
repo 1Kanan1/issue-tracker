@@ -49,6 +49,7 @@ app_security.password_hash = PasswordHash(
 @pytest.fixture(autouse=True)
 def reset_login_rate_limit():
     rate_limit._attempts.clear()
+    rate_limit._accounts.clear()
 
 
 @pytest_asyncio.fixture
