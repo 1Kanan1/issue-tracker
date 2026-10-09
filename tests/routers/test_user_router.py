@@ -119,6 +119,45 @@ async def test_update_me_password_too_short_rejected(
     assert res.status_code == 422, res.text
 
 
+async def test_admin_can_promote_another_user(
+    client: AsyncClient, admin_token: str, john: User
+):
+    res = await client.patch(
+        f"/users/{john.id}",
+        json={"role": "manager"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert res.status_code == 200, res.text
+    assert res.json()["role"] == "manager"
+
+
+async def test_admin_cannot_change_own_role(
+    client: AsyncClient, admin_token: str, admin: User
+):
+    res = await client.patch(
+        f"/users/{admin.id}",
+        json={"role": "member"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert res.status_code == 422, res.text
+
+
+async def test_member_cannot_set_own_role_via_me(
+    client: AsyncClient, john_token: str, john: User
+):
+    """Role is not in UserUpdate, so the request is accepted but ignored."""
+    res = await client.patch(
+        "/users/me",
+        json={"role": "admin"},
+        headers={"Authorization": f"Bearer {john_token}"},
+    )
+
+    assert res.status_code == 200, res.text
+    assert res.json()["role"] == "member"
+
+
 async def test_update_me_empty_password_rejected(
     client: AsyncClient, john_token: str, john_data: UserCreate
 ):

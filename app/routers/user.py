@@ -2,7 +2,12 @@ from fastapi import APIRouter, Depends, Query, status
 
 from app.deps import CurrentUserDep, UserServiceDep, get_current_user
 from app.permissions import Permission, require_permission
-from app.schemas.user import UserCreate, UserResponse, UserUpdate
+from app.schemas.user import (
+    UserAdminUpdate,
+    UserCreate,
+    UserResponse,
+    UserUpdate,
+)
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -49,7 +54,7 @@ async def create_user(data: UserCreate, service: UserServiceDep):
 async def update_current_user(
     data: UserUpdate, current_user: CurrentUserDep, service: UserServiceDep
 ):
-    return await service.update(current_user.id, data)
+    return await service.update(current_user.id, data, current_user.id)
 
 
 @router.patch(
@@ -57,9 +62,14 @@ async def update_current_user(
     response_model=UserResponse,
     dependencies=[Depends(require_permission(Permission.USER_UPDATE))],
 )
-async def update_user(user_id: int, data: UserUpdate, service: UserServiceDep):
+async def update_user(
+    user_id: int,
+    data: UserAdminUpdate,
+    current_user: CurrentUserDep,
+    service: UserServiceDep,
+):
     return await service.update(
-        user_id, data
+        user_id, data, current_user.id
     )  # Exception is handled by app.exception_handler
 
 

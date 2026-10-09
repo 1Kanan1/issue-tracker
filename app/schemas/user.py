@@ -60,6 +60,13 @@ class UserUpdate(BaseModel):
         return self
 
 
+class UserAdminUpdate(UserUpdate):
+    """Separate from UserUpdate because /users/me shares that one. Adding role
+    there would let any authenticated member promote themselves."""
+
+    role: Role | None = None
+
+
 class UserResponse(User):
     id: int
     role: Role

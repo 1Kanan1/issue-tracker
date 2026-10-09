@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.enums import Role
-from app.exceptions.base import AlreadyExistsError, NotFoundError
+from app.exceptions.base import AlreadyExistsError, NotFoundError, ValidationError
 from app.exceptions.user import (
     AuthenticationError,
 )
@@ -113,10 +113,15 @@ class UserService:
 
         return result.scalar_one_or_none()
 
-    async def update(self, user_id: int, data: UserUpdate) -> User:
+    async def update(
+        self, user_id: int, data: UserUpdate, current_user_id: int
+    ) -> User:
         user = await self.get_by_id(user_id)
 
         update_data = data.model_dump(exclude_unset=True)
+
+        if update_data.get("role") is not None and current_user_id == user_id:
+            raise ValidationError("You cannot change your own role")
 
         if "password" in update_data:
             password = update_data.pop("password")

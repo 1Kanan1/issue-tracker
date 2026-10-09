@@ -1,12 +1,13 @@
 import pytest
 
 import app.services.user as user_service_module
-from app.exceptions.base import AlreadyExistsError, NotFoundError
+from app.enums import Role
+from app.exceptions.base import AlreadyExistsError, NotFoundError, ValidationError
 from app.exceptions.user import (
     AuthenticationError,
 )
 from app.models import User
-from app.schemas.user import UserCreate, UserUpdate
+from app.schemas.user import UserAdminUpdate, UserCreate, UserUpdate
 from app.security import verify_password
 from app.services.user import UserService, _dummy_hash
 
@@ -99,15 +100,36 @@ async def test_create_user(user_service: UserService, alice_data: UserCreate):
 
 
 async def test_update_user(
-    user_service: UserService, alice: User, alice_data: UserCreate
+    user_service: UserService, alice: User, alice_data: UserCreate, admin: User
 ):
     # Test field update + password re-hashing
     updated = await user_service.update(
-        alice.id, UserUpdate(username="newname", password="newsecret")
+        alice.id, UserUpdate(username="newname", password="newsecret"), admin.id
     )
     assert updated.username == "newname"
     assert verify_password("newsecret", updated.password_hash)
     assert not verify_password(alice_data.password, updated.password_hash)
+
+
+async def test_admin_update_can_change_someone_elses_role(
+    user_service: UserService, alice: User, admin: User
+):
+    updated = await user_service.update(
+        alice.id, UserAdminUpdate(role=Role.MANAGER), admin.id
+    )
+
+    assert updated.role == Role.MANAGER
+
+
+async def test_update_rejects_own_role_change(user_service: UserService, admin: User):
+    with pytest.raises(ValidationError):
+        await user_service.update(admin.id, UserAdminUpdate(role=Role.MEMBER), admin.id)
+
+
+async def test_self_update_schema_cannot_set_role():
+    """UserUpdate backs /users/me; if role leaked in there, any member could
+    promote themselves."""
+    assert "role" not in UserUpdate.model_fields
 
 
 async def test_delete_user(user_service: UserService, john: User):
