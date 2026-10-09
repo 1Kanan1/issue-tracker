@@ -168,3 +168,39 @@ async def test_failures_outside_window_do_not_accumulate(
 
     await _fail(client, john_data.username, 1)
     assert rate_limit._accounts[john_data.username].failures == 1
+
+
+async def test_lapsed_account_entry_is_evicted(
+    client: AsyncClient, john_data: UserCreate
+):
+    """Usernames come from the request body, so entries must not outlive
+    their window or an attacker can plant unbounded ones."""
+    await _fail(client, john_data.username, 1)
+    assert john_data.username in rate_limit._accounts
+
+    rate_limit._accounts[john_data.username].last_failure = (
+        monotonic() - rate_limit.FAILURE_WINDOW - 1
+    )
+    rate_limit.check_account_locked(john_data.username)
+
+    assert john_data.username not in rate_limit._accounts
+
+
+async def test_sprayed_usernames_do_not_accumulate_entries(client: AsyncClient):
+    for i in range(rate_limit.LOGIN_LIMIT + 5):
+        rate_limit._attempts.clear()
+        await client.post(
+            "/auth/login", json={"username": f"ghost-{i}", "password": "wrong"}
+        )
+
+    assert len(rate_limit._accounts) == rate_limit.LOGIN_LIMIT + 5
+
+    for i in range(rate_limit.LOGIN_LIMIT + 5):
+        rate_limit._accounts[f"ghost-{i}"].last_failure = (
+            monotonic() - rate_limit.FAILURE_WINDOW - 1
+        )
+
+    for i in range(rate_limit.LOGIN_LIMIT + 5):
+        rate_limit.check_account_locked(f"ghost-{i}")
+
+    assert rate_limit._accounts == {}

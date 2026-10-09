@@ -1,4 +1,4 @@
-from collections import defaultdict, deque
+from collections import deque
 from dataclasses import dataclass
 from time import monotonic
 
@@ -16,7 +16,7 @@ FAILURE_WINDOW = 900.0
 
 # Sliding window per client. Process-local, so `--workers N` multiplies the
 # effective limit by N.
-_attempts: dict[str, deque[float]] = defaultdict(deque)
+_attempts: dict[str, deque[float]] = {}
 
 
 @dataclass
@@ -33,12 +33,15 @@ async def rate_limit_login(request: Request) -> None:
     client = request.client.host if request.client else "unknown"
 
     now = monotonic()
-    hits = _attempts[client]
+    hits = _attempts.get(client)
+    if hits is None:
+        hits = deque()
 
     while hits and now - hits[0] > LOGIN_WINDOW:
         hits.popleft()
 
     if len(hits) >= LOGIN_LIMIT:
+        _attempts[client] = hits
         retry_after = int(LOGIN_WINDOW - (now - hits[0])) + 1
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -47,6 +50,7 @@ async def rate_limit_login(request: Request) -> None:
         )
 
     hits.append(now)
+    _attempts[client] = hits
 
 
 def check_account_locked(username: str) -> None:
@@ -66,15 +70,17 @@ def check_account_locked(username: str) -> None:
         )
 
     if now - state.last_failure > FAILURE_WINDOW:
-        state.failures = 0
+        del _accounts[username]
 
 
 def register_failure(username: str) -> None:
     now = monotonic()
-    state = _accounts.setdefault(username, _Account())
+    state = _accounts.get(username)
 
-    if now - state.last_failure > FAILURE_WINDOW:
-        state.failures = 0
+    if state is None or now - state.last_failure > FAILURE_WINDOW:
+        # A lapsed entry is replaced rather than reset: usernames come from the
+        # request body, so an attacker can plant unbounded ones.
+        state = _accounts[username] = _Account()
 
     state.failures += 1
     state.last_failure = now
